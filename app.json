@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "etap-telematics",
-    "slug": "etap-telematics",
+    "name": "auto-guardian",
+    "slug": "auto-guardian",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",

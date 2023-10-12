@@ -138,10 +138,13 @@ const MapComponent = ({ setCurrentRPM, rideLocations, setRideLocations, startedR
     useEffect(() => {
         const config = async () => {
             let resf = await Location.requestForegroundPermissionsAsync();
-            let resb = await Location.requestBackgroundPermissionsAsync();
-            if (resf.status != 'granted' && resb.status !== 'granted') {
+            if (resf.status != 'granted') {
                 console.log('Permission to access location was denied');
             } else {
+                let resf = await Location.requestForegroundPermissionsAsync();
+                if (resf.status != 'granted') {
+                    console.log('Permission to access location was denied');
+                }
                 console.log('Permission to access location granted');
             }
         };
