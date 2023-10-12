@@ -1,11 +1,11 @@
-import { View, StyleSheet, Animated, Easing } from 'react-native'
+import { View, StyleSheet, Animated, Easing, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import MapView, { Marker, Polyline } from 'react-native-maps'
 import * as Location from 'expo-location';
 import { COLORS, } from '../constants/theme';
 import { FontAwesome5 } from '@expo/vector-icons';
 import haversine from "haversine";
-
+import { Permission } from 'react-native';
 
 const LATITUDE_DELTA = 0.009;
 const LONGITUDE_DELTA = 0.009;
@@ -73,6 +73,12 @@ const MapComponent = ({ setCurrentRPM, rideLocations, setRideLocations, startedR
     }
 
     const startLocationTracking = async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission to access location was denied');
+            return;
+        }
+
         const location = await Location.getCurrentPositionAsync({
             timeInterval: 100,
             accuracy: Location.Accuracy.BestForNavigation
@@ -128,29 +134,11 @@ const MapComponent = ({ setCurrentRPM, rideLocations, setRideLocations, startedR
     }
 
     useEffect(() => {
-
         startLocationTracking()
-
-
 
     }, [location, startedRide])
 
-    useEffect(() => {
-        const config = async () => {
-            let resf = await Location.requestForegroundPermissionsAsync();
-            if (resf.status != 'granted') {
-                console.log('Permission to access location was denied');
-            } else {
-                let resf = await Location.requestForegroundPermissionsAsync();
-                if (resf.status != 'granted') {
-                    console.log('Permission to access location was denied');
-                }
-                console.log('Permission to access location granted');
-            }
-        };
 
-        config();
-    }, []);
 
 
     return (
