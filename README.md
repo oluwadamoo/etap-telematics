@@ -37,7 +37,7 @@ git clone https://github.com/oluwadamoo/etap-telematics-app.git
 Navigate to the project directory and install the required dependencies using npm:
 
 ```bash
-cd risevest-test
+cd etap-telematics-app
 ```
 
 ```bash
