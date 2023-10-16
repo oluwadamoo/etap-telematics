@@ -4,12 +4,13 @@ import { COLORS, SIZES, commonStyles } from '../../constants/theme'
 import MapComponent from '../../components/MapComponent'
 import MetricComponent from '../../components/MetricComponent'
 import { getData, storeData } from '../../utils/store-retrieve-data'
+import { getAvg } from '../../utils/calculate-metric'
 
 
 
 
 interface IMenu {
-    setStartedRide: React.Dispatch<React.SetStateAction<boolean>>;
+    startRide: () => void;
     startedRide: boolean;
     currentLocation: {
         longitude: number,
@@ -20,7 +21,7 @@ interface IMenu {
     currentTemp: number;
     currentFuelLevel: number;
 }
-const MetricsMenu = ({ setStartedRide, startedRide, currentLocation, currentRPM, currentSpeed, currentTemp, currentFuelLevel }: IMenu) => {
+const MetricsMenu = ({ startRide, startedRide, currentLocation, currentRPM, currentSpeed, currentTemp, currentFuelLevel }: IMenu) => {
     const [footerHeight, setFooterHeight] = useState(100);
 
 
@@ -60,7 +61,7 @@ const MetricsMenu = ({ setStartedRide, startedRide, currentLocation, currentRPM,
                     maxValue={180}
                     title='Speed'
                     type='speed'
-                    value={currentSpeed}
+                    value={parseFloat(currentSpeed.toFixed(2))}
                     symbol=' Km/Hr'
                 />
                 <MetricComponent
@@ -80,8 +81,8 @@ const MetricsMenu = ({ setStartedRide, startedRide, currentLocation, currentRPM,
                     size={130}
                     title='Speed'
                     type='rpm'
-                    value={currentSpeed}
-                    symbol=' Km/Hr'
+                    value={parseFloat(currentRPM.toFixed(2))}
+                    symbol=' RPM'
                 />
 
                 <View style={{ marginLeft: SIZES.padding, justifyContent: "center" }}>
@@ -111,9 +112,7 @@ const MetricsMenu = ({ setStartedRide, startedRide, currentLocation, currentRPM,
 
 
             <TouchableOpacity style={{ ...styles.button, backgroundColor: startedRide ? COLORS.red : COLORS['teal-001'] }}
-                onPress={() => {
-                    setStartedRide((prev) => !prev)
-                }}
+                onPress={startRide}
 
             >
                 <Text style={{ ...commonStyles.boldText, color: COLORS.white }}>{startedRide ? "End" : "Begin"} Ride</Text>
@@ -129,6 +128,10 @@ const Home = () => {
     const [currentFuelLevel, setCurrentFuelLevel] = useState(0)
     const [avgSpeed, setAvgSpeed] = useState(0)
     const [avgRPM, setAvgRPM] = useState(0)
+    const [speeds, setSpeeds] = useState<number[]>([])
+    const [rpms, setRpms] = useState<number[]>([])
+
+
     const [rideLocations, setRideLocations] = useState<{
         longitude: number,
         latitude: number
@@ -140,6 +143,9 @@ const Home = () => {
     })
 
     const saveRide = async () => {
+
+        setAvgRPM(getAvg(rpms))
+        setAvgSpeed(getAvg(speeds))
 
         let formerData = await getData({ key: "@rides" })
         if (formerData) {
@@ -160,23 +166,36 @@ const Home = () => {
             newData = [data]
         }
         await storeData({ key: "@rides", value: JSON.stringify(newData) })
+        setAvgRPM(0)
+        setAvgSpeed(0)
+        setCurrentFuelLevel(100)
+        setCurrentRPM(0)
+        setCurrentSpeed(0)
+        setCurrentTemp(0)
+        setRideLocations([])
+        setSpeeds([])
+        setRpms([])
+
+
     }
 
-
-    useEffect(() => {
-        if (!startedRide && rideLocations.length) {
+    const startRide = () => {
+        if (startedRide) {
+            setStartedRide(false)
             saveRide()
+        } else {
+            setStartedRide(true)
         }
+    }
 
-    }, [startedRide])
 
     return (
         <SafeAreaView style={commonStyles.screenWrapper}>
             <View style={styles.container}>
 
-                <MapComponent setAvgRPM={setAvgRPM} setAvgSpeed={setAvgSpeed} rideLocations={rideLocations} setRideLocations={setRideLocations} startedRide={startedRide} setCurrentLocation={setCurrentLocation} setCurrentSpeed={setCurrentSpeed} currentLocation={currentLocation} setCurrentRPM={setCurrentRPM} />
+                <MapComponent setSpeeds={setSpeeds} setRpms={setRpms} setAvgRPM={setAvgRPM} setAvgSpeed={setAvgSpeed} rideLocations={rideLocations} setRideLocations={setRideLocations} startedRide={startedRide} setCurrentLocation={setCurrentLocation} setCurrentSpeed={setCurrentSpeed} currentLocation={currentLocation} setCurrentRPM={setCurrentRPM} />
 
-                <MetricsMenu setStartedRide={setStartedRide} startedRide={startedRide} currentLocation={currentLocation} currentSpeed={currentSpeed} currentRPM={currentRPM} currentTemp={currentTemp} currentFuelLevel={currentFuelLevel} />
+                <MetricsMenu startRide={startRide} startedRide={startedRide} currentLocation={currentLocation} currentSpeed={currentSpeed} currentRPM={currentRPM} currentTemp={currentTemp} currentFuelLevel={currentFuelLevel} />
             </View>
 
         </SafeAreaView>
@@ -227,7 +246,6 @@ const styles = StyleSheet.create({
         ...commonStyles.spaceMono,
         textAlign: 'center',
         fontSize: 20,
-        fontWeight: 'bold',
         textShadowColor: 'rgba(0, 0, 0, 0.731)',
         textShadowOffset: { width: 2, height: 1.5 },
         textShadowRadius: 5,

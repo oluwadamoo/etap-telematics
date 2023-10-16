@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import { COLORS, } from '../constants/theme';
 import { FontAwesome5 } from '@expo/vector-icons';
 import haversine from "haversine";
-import { Permission } from 'react-native';
+import Map from './Map';
 
 const LATITUDE_DELTA = 0.009;
 const LONGITUDE_DELTA = 0.009;
@@ -31,12 +31,14 @@ interface IMap {
     setRideLocations: React.Dispatch<React.SetStateAction<{
         longitude: number;
         latitude: number;
-    }[]>>
+    }[]>>;
+    setSpeeds: React.Dispatch<React.SetStateAction<number[]>>;
+    setRpms: React.Dispatch<React.SetStateAction<number[]>>;
+
+
 }
-const MapComponent = ({ setCurrentRPM, rideLocations, setRideLocations, startedRide, currentLocation, setCurrentLocation, setCurrentSpeed, setAvgRPM, setAvgSpeed }: IMap) => {
+const MapComponent = ({ setSpeeds, setRpms, setCurrentRPM, rideLocations, setRideLocations, startedRide, currentLocation, setCurrentLocation, setCurrentSpeed, setAvgRPM, setAvgSpeed }: IMap) => {
     const animatedOpacity = new Animated.Value(0);
-    const [speeds, setSpeeds] = useState<number[]>([])
-    const [rpms, setRpms] = useState<number[]>([])
 
     const [location, setLocation] = useState({
         latitude: 0,
@@ -63,14 +65,7 @@ const MapComponent = ({ setCurrentRPM, rideLocations, setRideLocations, startedR
 
 
 
-    const getAvg = (numbers: number[]) => {
-        if (numbers.length === 0) {
-            return 0;
-        }
-        const sum = numbers.reduce((total, num) => total + num, 0);
-        const average = sum / numbers.length;
-        return average;
-    }
+
 
     const startLocationTracking = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -102,11 +97,6 @@ const MapComponent = ({ setCurrentRPM, rideLocations, setRideLocations, startedR
             longitude, latitude
         })
 
-        if (!startedRide && rpms.length && speeds.length) {
-
-            setAvgRPM(getAvg(rpms))
-            setAvgSpeed(getAvg(speeds))
-        }
 
         if (startedRide && !rideLocations.some(pos => pos.latitude === latitude && pos.longitude === longitude)) {
             setCurrentLocation({ latitude, longitude })
@@ -136,7 +126,7 @@ const MapComponent = ({ setCurrentRPM, rideLocations, setRideLocations, startedR
     useEffect(() => {
         startLocationTracking()
 
-    }, [location, startedRide])
+    }, [rideLocations, startedRide])
 
 
 
@@ -145,44 +135,49 @@ const MapComponent = ({ setCurrentRPM, rideLocations, setRideLocations, startedR
         <View style={styles.container}>
             {
                 startPosition &&
-                <MapView
-                    style={styles.map}
-                    initialRegion={startPosition}
-                    showsUserLocation={startedRide}
-                    followsUserLocation={startedRide}
-                    region={startPosition}>
+                <Map containerStyles={styles.map} startPosition={startPosition} showsUserLocation={startedRide} followsUserLocation={startedRide}
+                    coords={rideLocations}
+                    posAnimationStyle={{ opacity: animatedOpacity }}
 
-                    <Marker
-                        coordinate={startPosition}
-                    >
+                />
+                // <MapView
+                //     style={styles.map}
+                //     initialRegion={startPosition}
+                //     showsUserLocation={startedRide}
+                //     followsUserLocation={startedRide}
+                //     region={startPosition}>
 
-                        <View style={{ alignItems: "center", overflow: 'visible', justifyContent: 'flex-start', width: 60, height: 60, borderRadius: 70 }}>
-                            <Animated.View style={{ borderWidth: 2, opacity: animatedOpacity, borderColor: 'red', width: 30, height: 30, borderRadius: 30, position: 'absolute', bottom: '10%', }} />
-                            <View
-                                style={{
-                                    backgroundColor: COLORS.white
-                                }}
-                            >
-                                <FontAwesome5 name="map-pin" size={35} color={COLORS.red} />
+                //     <Marker
+                //         coordinate={startPosition}
+                //     >
 
-                            </View>
-                        </View>
+                //         <View style={{ alignItems: "center", overflow: 'visible', justifyContent: 'flex-start', width: 60, height: 60, borderRadius: 70 }}>
+                //             <Animated.View style={{ borderWidth: 2, opacity: animatedOpacity, borderColor: 'red', width: 30, height: 30, borderRadius: 30, position: 'absolute', bottom: '10%', }} />
+                //             <View
+                //                 style={{
+                //                     backgroundColor: COLORS.white
+                //                 }}
+                //             >
+                //                 <FontAwesome5 name="map-pin" size={35} color={COLORS.red} />
 
-
-                    </Marker>
-
-                    <Polyline
-                        coordinates={rideLocations.map(pos => ({
-                            latitude: pos.latitude,
-                            longitude: pos.longitude
-                        }))}
-                        strokeWidth={5}
-                        strokeColor={COLORS['teal-001']}
-                    />
+                //             </View>
+                //         </View>
 
 
+                //     </Marker>
 
-                </MapView>
+                //     <Polyline
+                //         coordinates={rideLocations.map(pos => ({
+                //             latitude: pos.latitude,
+                //             longitude: pos.longitude
+                //         }))}
+                //         strokeWidth={5}
+                //         strokeColor={COLORS['teal-001']}
+                //     />
+
+
+
+                // </MapView>
 
             }
 

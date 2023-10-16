@@ -85,8 +85,8 @@ const MetricComponent = ({ type, symbol, maxValue, size, value, title, labels, c
                     </Indicator>
                 </Speedometer>
             }
-            {type === 'speed' && <Text style={{ ...commonStyles.boldText, fontSize: 25, textAlign: 'center' }}>{value} km/hr</Text>}
-            {type === 'rpm' && <Text style={{ ...commonStyles.boldText, fontSize: 15, textAlign: 'center' }}>{value} rpm</Text>}
+            {type === 'speed' && <Text style={{ ...commonStyles.boldText, fontSize: 25, textAlign: 'center' }}>{value}{symbol}</Text>}
+            {type === 'rpm' && <Text style={{ ...commonStyles.boldText, fontSize: 15, textAlign: 'center' }}>{value}{symbol}</Text>}
 
         </View>
     )
